@@ -14,6 +14,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
+
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -39,47 +40,13 @@ import {
 
 //export const metadata: Metadata = {title: "Utilisateurs"};
 
-const data: Payment[] = [
-  {
-    id: "m5gr84i9",
-    amount: 316,
-    status: "success",
-    email: "ken99@yahoo.com",
-  },
-  {
-    id: "3u1reuv4",
-    amount: 242,
-    status: "success",
-    email: "Abe45@gmail.com",
-  },
-  {
-    id: "derv1ws0",
-    amount: 837,
-    status: "processing",
-    email: "Monserrat44@gmail.com",
-  },
-  {
-    id: "5kma53ae",
-    amount: 874,
-    status: "success",
-    email: "Silas22@gmail.com",
-  },
-  {
-    id: "bhqecj4p",
-    amount: 721,
-    status: "failed",
-    email: "carmella@hotmail.com",
-  },
-]
-
-export type Payment = {
-  id: string
-  amount: number
-  status: "pending" | "processing" | "success" | "failed"
+export type User = {
+  id: number
   email: string
+  roles: string[]
 }
 
-export const columns: ColumnDef<Payment>[] = [
+export const columns: ColumnDef<User>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -103,13 +70,6 @@ export const columns: ColumnDef<Payment>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("status")}</div>
-    ),
-  },
-  {
     accessorKey: "email",
     header: ({ column }) => {
       return (
@@ -125,25 +85,17 @@ export const columns: ColumnDef<Payment>[] = [
     cell: ({ row }) => <div className="lowercase">{row.getValue("email")}</div>,
   },
   {
-    accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("amount"))
-
-      // Format the amount as a dollar amount
-      const formatted = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(amount)
-
-      return <div className="text-right font-medium">{formatted}</div>
-    },
+    accessorKey: "roles",
+    header: "Rôle",
+    cell: ({ row }) => (
+      <div className="capitalize">{row.getValue("roles")}</div>
+    ),
   },
   {
     id: "actions",
     enableHiding: false,
     cell: ({ row }) => {
-      const payment = row.original
+      const user = row.original
 
       return (
         <DropdownMenu>
@@ -156,13 +108,13 @@ export const columns: ColumnDef<Payment>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
+              onClick={() => navigator.clipboard.writeText(user.id)}
             >
-              Copy payment ID
+              Copy user ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
+            <DropdownMenuItem>Modifier</DropdownMenuItem>
+            <DropdownMenuItem>Supprimer</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -178,15 +130,22 @@ export default function Users() {
     const fetchUsers = async () => {
       try {
         setLoading(true); // Commence à charger les données
-        const data = await apiService('users', 'GET');
-        setUsers(data); // Met à jour les utilisateurs
+        let data = await apiService('users', 'GET');
+        
+        // Transformer les rôles en prenant uniquement le premier rôle
+        data = data.map((user: any) => ({
+          ...user,
+          roles: user.roles[0],  // Ne garder que le premier rôle
+        }));
+  
+        setUsers(data); // Met à jour les utilisateurs avec les rôles modifiés
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {
         setLoading(false); // Terminer le chargement
       }
     };
-
+  
     fetchUsers();
   }, []);
 
@@ -199,7 +158,7 @@ export default function Users() {
   const [rowSelection, setRowSelection] = React.useState({})
 
   const table = useReactTable({
-    data,
+    data: users,  // Utilisez les données dynamiques ici
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -215,25 +174,17 @@ export default function Users() {
       columnVisibility,
       rowSelection,
     },
-  })
+  });
 
   if (loading) {
     return <p>Chargement des utilisateurs...</p>;
   }
   return (
     <div className="flex min-h-screen items-start justify-center">
-      <div>
-        <h1>Liste des utilisateurs</h1>
-        <ul>
-          {users.map((user: any) => (
-            <li key={user.id}>{user.email}</li>
-          ))}
-        </ul>
-      </div>
       <div className="w-full">
         <div className="flex items-center py-4">
           <Input
-            placeholder="Filter emails..."
+            placeholder="Filtrer par email..."
             value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("email")?.setFilterValue(event.target.value)
@@ -310,7 +261,7 @@ export default function Users() {
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No results.
+                    Pas de résultats.
                   </TableCell>
                 </TableRow>
               )}
@@ -319,8 +270,8 @@ export default function Users() {
         </div>
         <div className="flex items-center justify-end space-x-2 py-4">
           <div className="flex-1 text-sm text-muted-foreground">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
+            {table.getFilteredSelectedRowModel().rows.length} /{" "}
+            {table.getFilteredRowModel().rows.length} ligne(s) sélectionnées.
           </div>
           <div className="space-x-2">
             <Button
@@ -329,7 +280,7 @@ export default function Users() {
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
-              Previous
+              Précédent
             </Button>
             <Button
               variant="outline"
@@ -337,7 +288,7 @@ export default function Users() {
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
-              Next
+              Suivant
             </Button>
           </div>
         </div>
