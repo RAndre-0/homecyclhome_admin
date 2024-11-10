@@ -1,4 +1,3 @@
-// services/apiService.ts
 import { getCookie } from 'cookies-next';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -26,11 +25,19 @@ export const apiService = async (endpoint: string, method: HttpMethod, body?: an
     });
 
     if (!response.ok) {
-      throw new Error(`Request failed: ${response.status} - ${await response.text()}`);
+      // Récupère le message d'erreur pour faciliter le débogage
+      const errorText = await response.text();
+      throw new Error(`Request failed: ${response.status} - ${errorText}`);
     }
 
-    // Parse the response as JSON
-    return await response.json();
+    // Vérifier si la réponse contient du JSON
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      return await response.json();
+    }
+
+    // Retourne null si aucune donnée JSON n'est présente
+    return null;
 
   } catch (error) {
     console.error("API Service Error:", error);
