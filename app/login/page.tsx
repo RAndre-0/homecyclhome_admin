@@ -15,18 +15,20 @@ export const description =
 export default function Dashboard() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false); // État pour l'animation de chargement
   const [cookies, setCookie] = useCookies(['token']);
   const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Prevent default form submission
+    event.preventDefault();
+    setLoading(true); // Activer le mode chargement
 
     try {
       const response = await fetch(process.env.NEXT_PUBLIC_API_ROUTE + "login_check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: email, // Use username in the request body as required by the endpoint
+          username: email,
           password,
         }),
       });
@@ -38,18 +40,17 @@ export default function Dashboard() {
       const data = await response.json();
       const token = data.token;
       setCookie('token', token, { path: '/', maxAge: 3600, secure: false, sameSite: 'strict' });
-      console.log("Login successful! Token stored in cookies.");
-      // Redirect to homepage
       router.push('/');
 
     } catch (error) {
       console.error("Login error:", error);
+    } finally {
+      setLoading(false); // Désactiver le mode chargement
     }
   };
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-2">
-      {/* Form Section */}
       <div className="flex min-h-full flex-col items-center justify-center py-12">
         <div className="mx-auto grid w-full max-w-md gap-6 px-4 sm:px-0">
           <div className="grid gap-2 text-center">
@@ -69,15 +70,13 @@ export default function Dashboard() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading} // Désactiver le champ si en chargement
                 />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Mot de passe</Label>
-                  <Link
-                    href="/forgot-password"
-                    className="text-sm underline"
-                  >
+                  <Link href="/forgot-password" className="text-sm underline">
                     Mot de passe oublié ?
                   </Link>
                 </div>
@@ -87,10 +86,15 @@ export default function Dashboard() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading} // Désactiver le champ si en chargement
                 />
               </div>
-              <Button type="submit" className="w-full">
-                Se connecter
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <span className="loader" /> // Animation de chargement
+                ) : (
+                  "Se connecter"
+                )}
               </Button>
             </div>
           </form>
@@ -103,7 +107,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Image Section */}
       <div className="relative hidden lg:block">
         <Image
           src={loginBg}

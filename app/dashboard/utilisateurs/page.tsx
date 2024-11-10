@@ -14,6 +14,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
+import Link from "next/link";
 
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
 
@@ -113,7 +114,11 @@ export const columns: ColumnDef<User>[] = [
               Copy user ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Modifier</DropdownMenuItem>
+            <DropdownMenuItem>
+            <Link href={`/dashboard/utilisateurs/${user.id}/modifier`} className="text-sm underline">
+              Modifier
+            </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>Supprimer</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -131,13 +136,13 @@ export default function Users() {
       try {
         setLoading(true); // Commence à charger les données
         let data = await apiService('users', 'GET');
-        
+
         // Transformer les rôles en prenant uniquement le premier rôle
         data = data.map((user: any) => ({
           ...user,
           roles: user.roles[0],  // Ne garder que le premier rôle
         }));
-  
+
         setUsers(data); // Met à jour les utilisateurs avec les rôles modifiés
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -145,7 +150,7 @@ export default function Users() {
         setLoading(false); // Terminer le chargement
       }
     };
-  
+
     fetchUsers();
   }, []);
 
