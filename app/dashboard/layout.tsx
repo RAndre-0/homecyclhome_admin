@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
-import {CircleUser, Home, Menu, Package, Search, Users} from "lucide-react"
+import {CircleUser, Home, Menu, Package, Search, Users, Map} from "lucide-react"
 import {DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -35,6 +35,7 @@ export default function Layout({ children }: LayoutProps) {
             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
               <SidebarLink href="/dashboard" label="Accueil" icon={Home} />
               <SidebarLink href="/dashboard/produits" label="Produits" icon={Package} />
+              <SidebarLink href="/dashboard/carte" label="Carte" icon={Map} />
               <SidebarLink href="/dashboard/utilisateurs" label="Utilisateurs" icon={Users} />
             </nav>
           </div>
