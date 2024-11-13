@@ -4,21 +4,16 @@ import { EditControl } from "react-leaflet-draw"
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css"
 import { circle, marker } from 'leaflet';
+import { Popover, PopoverContent, PopoverTrigger } from '@radix-ui/react-popover';
 
-// const Component = () => (
-//     <FeatureGroup>
-//         <EditControl
-//             position='topright'
-//             onEdited={this._onEditPath}
-//             onCreated={this._onCreate}
-//             onDeleted={this._onDeleted}
-//             draw={{
-//                 rectangle: false
-//             }}
-//         />
-//         <Circle center={[51.51, -0.06]} radius={200} />
-//     </FeatureGroup>
-// );
+const styles = {
+    map: {
+        width: "100%",
+        height: "80vh",
+        overflow: "hidden",
+        zIndex: "0"
+    }
+}
 
 export default function Map() {
     const _onCreate = () => {
@@ -31,9 +26,8 @@ export default function Map() {
         console.log("Deleted");
     }
 
-
     return (
-        <MapContainer center={[45.757704, 4.834099]} zoom={13} scrollWheelZoom={false}>
+        <MapContainer style={styles.map} center={[45.757704, 4.834099]} zoom={13} scrollWheelZoom={false}>
             <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
