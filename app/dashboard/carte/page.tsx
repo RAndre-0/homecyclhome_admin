@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css"
 import { circle, marker } from 'leaflet';
 import { Popover, PopoverContent, PopoverTrigger } from '@radix-ui/react-popover';
+import { useState } from 'react';
 
 const styles = {
     map: {
@@ -16,9 +17,13 @@ const styles = {
 }
 
 export default function Map() {
-    const _onCreate = () => {
+    const [polygons, setPolygons] = useState([]);
+    const _onCreate = (e) => {
         console.log("Created");
+        const newPolygon = e.layer.toGeoJSON().geometry.coordinates[0];
+        setPolygons(prevPolygons =>[...prevPolygons, newPolygon]);
     }
+    console.log(polygons);
     const _onEdited = () => {
         console.log("Edited");
     }
