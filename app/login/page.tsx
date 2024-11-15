@@ -5,49 +5,72 @@ import loginBg from "../../public/media/image/login_bg.jpg";
 import { useState } from "react";
 import { useCookies } from 'react-cookie';
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button"
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { z } from "zod";
 
-export const description =
-  "A login page with two columns. The first column has the login form with email and password. There's a Forgot your password link and a link to sign up if you do not have an account. The second column has a cover image.";
+const formSchema = z.object({
+  email: z.string().email({ message: "L'adresse email est invalide" }),
+  password: z.string()
+})
 
-export default function Dashboard() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false); // État pour l'animation de chargement
+export default function Login() {
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // État pour gérer les erreurs
   const [cookies, setCookie] = useCookies(['token']);
   const router = useRouter();
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true); // Activer le mode chargement
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: ""
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setLoading(true);
+    setErrorMessage(null); // Réinitialiser le message d'erreur avant de tenter le login
 
     try {
       const response = await fetch(process.env.NEXT_PUBLIC_API_ROUTE + "login_check", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: email,
-          password,
+          username: values.email,
+          password: values.password,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Login failed: " + await response.text());
+        const errorText = await response.text();
+        throw new Error(errorText || "Une erreur est survenue");
       }
 
       const data = await response.json();
       const token = data.token;
       setCookie('token', token, { path: '/', maxAge: 3600, secure: false, sameSite: 'strict' });
       router.push('/');
-
     } catch (error) {
       console.error("Login error:", error);
+      setErrorMessage(
+        "Identifiants incorrects. Veuillez vérifier votre email et votre mot de passe."
+      );
     } finally {
-      setLoading(false); // Désactiver le mode chargement
+      setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-2">
@@ -59,45 +82,46 @@ export default function Dashboard() {
               Renseignez votre email et votre mot de passe ci-dessous pour accéder à votre compte
             </p>
           </div>
-          <form onSubmit={handleSubmit}>
-            <div className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="email@exemple.fr"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading} // Désactiver le champ si en chargement
-                />
-              </div>
-              <div className="grid gap-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Mot de passe</Label>
-                  <Link href="/forgot-password" className="text-sm underline">
-                    Mot de passe oublié ?
-                  </Link>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={loading} // Désactiver le champ si en chargement
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? (
-                  <span className="loader" /> // Animation de chargement
-                ) : (
-                  "Se connecter"
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="exemple@email.com" {...field} />
+                    </FormControl>
+                    <FormDescription></FormDescription>
+                    <FormMessage />
+                  </FormItem>
                 )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mot de passe</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Mot de passe" {...field} />
+                    </FormControl>
+                    <FormDescription></FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {errorMessage && ( // Affichage du message d'erreur
+                <div className="text-red-500 text-sm">
+                  {errorMessage}
+                </div>
+              )}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Chargement..." : "Connexion"}
               </Button>
-            </div>
-          </form>
+            </form>
+          </Form>
           <div className="mt-4 text-center text-sm">
             Pas encore de compte ?{" "}
             <Link href="#" className="underline">
@@ -106,7 +130,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
       <div className="relative hidden lg:block">
         <Image
           src={loginBg}
