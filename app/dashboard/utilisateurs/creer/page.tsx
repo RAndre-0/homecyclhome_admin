@@ -1,28 +1,51 @@
-"use client"
+"use client";
+
 import { apiService } from "@/services/api-service";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+  } from "@/components/ui/select"
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { registerSchema } from "@/schemas/schemas";
 
-export default function EditUser() {
+export default function CreateUser() {
     const [loading, setLoading] = useState(false);
-    const { toast } = useToast()
-    const [formData, setFormData] = useState({ email: "", password: "", roles: [] });
+    const { toast } = useToast();
     const router = useRouter();
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
+    const form = useForm<z.infer<typeof registerSchema>>({
+        resolver: zodResolver(registerSchema),
+        defaultValues: {
+            email: "",
+            password: "",
+            role: "",
+        },
+    });
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    // Gestionnaire de soumission
+    async function onSubmit(values: z.infer<typeof registerSchema>) {
+        console.log("Form values submitted:", values);
         setLoading(true);
         try {
-            await apiService(`users`, 'POST', formData);
+            await apiService(`users`, "POST", values);
             toast({
                 title: "Utilisateur créé avec succès",
                 description: "Un utilisateur a bien été ajouté à l'application.",
@@ -39,7 +62,7 @@ export default function EditUser() {
         } finally {
             setLoading(false);
         }
-    };
+    }
 
     if (loading) {
         return (
@@ -48,37 +71,65 @@ export default function EditUser() {
             </div>
         );
     }
+
     return (
         <div className="min-h-screen flex items-start justify-center">
             <div className="max-w-md w-full p-6 rounded-md shadow-md">
                 <h2 className="text-2xl font-bold mb-4">Nouvel utilisateur</h2>
-                <form onSubmit={handleSubmit} className="grid gap-4">
-                    <div className="grid gap-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                        <FormField
+                            control={form.control}
                             name="email"
-                            type="email"
-                            placeholder="email@exemple.com"
-                            required
-                            onChange={handleInputChange}
-                            disabled={loading}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Email</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="exemple@email.com" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
                         />
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                            id="password"
+                        <FormField
+                            control={form.control}
                             name="password"
-                            type="password"
-                            placeholder="password"
-                            required
-                            onChange={handleInputChange}
-                            disabled={loading}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Mot de passe</FormLabel>
+                                    <FormControl>
+                                        <Input type="password" placeholder="Mot de passe" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
                         />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={loading}>
-                        {loading ? <span className="loader" /> : "Créer un utilisateur"}
-                    </Button>
-                </form>
+                        <FormField
+                            control={form.control}
+                            name="role"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Rôle</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Choisissez un rôle" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="ROLE_TECHNICIEN">Technicien</SelectItem>
+                                            <SelectItem value="ROLE_ADMIN">Administrateur</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Button type="submit" className="w-full" disabled={loading}>
+                            {loading ? "Chargement..." : "Confirmer"}
+                        </Button>
+                    </form>
+                </Form>
             </div>
         </div>
     );

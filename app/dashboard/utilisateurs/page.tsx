@@ -15,9 +15,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table"
 import Link from "next/link";
-
 import { ArrowUpDown, ChevronDown, MoreHorizontal } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -115,9 +113,9 @@ export const columns: ColumnDef<User>[] = [
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
-            <Link href={`/dashboard/utilisateurs/${user.id}/modifier`} className="text-sm underline">
-              Modifier
-            </Link>
+              <Link href={`/dashboard/utilisateurs/${user.id}/modifier`} className="text-sm underline">
+                Modifier
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>Supprimer</DropdownMenuItem>
           </DropdownMenuContent>
@@ -187,9 +185,10 @@ export default function Users() {
   return (
     <div className="flex min-h-screen items-start justify-center">
       <div className="w-full">
+        <Button className="mb-8"><Link href={`/dashboard/utilisateurs/creer`}>Ajouter un utilisateur</Link></Button>
         <div className="flex items-center py-4">
           <Input
-            placeholder="Filtrer par email..."
+            placeholder="Filtrer..."
             value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("email")?.setFilterValue(event.target.value)
@@ -199,7 +198,7 @@ export default function Users() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
-                Columns <ChevronDown className="ml-2 h-4 w-4" />
+                colonnes<ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

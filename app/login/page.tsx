@@ -19,11 +19,7 @@ import { Input } from "@/components/ui/input"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod";
-
-const formSchema = z.object({
-  email: z.string().email({ message: "L'adresse email est invalide" }),
-  password: z.string()
-})
+import { loginSchema } from "@/schemas/schemas";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -31,15 +27,15 @@ export default function Login() {
   const [cookies, setCookie] = useCookies(['token']);
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: ""
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof loginSchema>) {
     setLoading(true);
     setErrorMessage(null); // Réinitialiser le message d'erreur avant de tenter le login
 
