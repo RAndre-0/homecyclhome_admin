@@ -10,7 +10,11 @@ const PUBLIC_ROUTES = ['/login']; // Pages accessibles sans authentification
 const VALID_ROLES = ['ROLE_ADMIN', 'ROLE_SUPERADMIN'];
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get('token')?.value;
+  const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME;
+  if (!TOKEN_NAME) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+  const token = request.cookies.get(TOKEN_NAME)?.value;
 
   const isPublicRoute =
     PUBLIC_ROUTES.includes(request.nextUrl.pathname) || PUBLIC_FILE.test(request.nextUrl.pathname);

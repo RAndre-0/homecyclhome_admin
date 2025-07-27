@@ -4,12 +4,13 @@ import { useRouter } from 'next/navigation'; // Utilisation du router pour redir
 import { useCookies } from 'react-cookie';
 
 export default function Logout() {
-  const [cookies, setCookie, removeCookie] = useCookies(['token']); // Accès aux cookies
+  const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME ?? 'hch_token';
+  const [cookies, setCookie, removeCookie] = useCookies([TOKEN_NAME]); // Accès aux cookies
   const router = useRouter(); // Pour la redirection
 
   useEffect(() => {
     // Suppression du cookie contenant le token
-    removeCookie('token', { path: '/' });
+    removeCookie(TOKEN_NAME, { path: '/' });
     // Redirection vers la page de login
     router.push('/login');
   }, [removeCookie, router]);

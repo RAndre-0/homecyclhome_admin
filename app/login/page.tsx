@@ -24,7 +24,8 @@ import { loginSchema } from "@/schemas/schemas"; // Import du schéma de validat
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [cookies, setCookie] = useCookies(['token']);
+  const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME ?? 'hch_token';
+  const [cookies, setCookie] = useCookies([TOKEN_NAME]);
   const router = useRouter();
 
   // Formulaire avec validation Zod
@@ -60,7 +61,7 @@ export default function Login() {
       const token = data.token;
 
       // Configuration sécurisée du cookie
-      setCookie('token', token, {
+      setCookie(TOKEN_NAME, token, {
         path: '/', 
         maxAge: 60000, 
         secure: process.env.NODE_ENV === 'production', // Secure en production uniquement
