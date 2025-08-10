@@ -26,9 +26,6 @@ yarn-debug.log*
 yarn-error.log*
 
 # env files
-.env.local
-.env.local.php
-.env.*.local
 .env
 .env.*
 
