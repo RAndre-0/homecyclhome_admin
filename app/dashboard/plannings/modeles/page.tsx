@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { apiService, convertKeysToCamel } from "@/services/api-service";
-import { TypeIntervention } from "@/types/types";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { DeleteModelDialog } from "./DeleteModelDialog";

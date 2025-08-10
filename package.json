@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "dev:https": "node server.js"
+    "dev:https": "node server.dev.js"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.15",

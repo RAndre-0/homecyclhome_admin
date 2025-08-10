@@ -1,15 +1,13 @@
 "use client";
-import { useState, ReactNode } from "react";
+import { ReactNode } from "react";
 import SidebarLink from "@/components/sidebar-link";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import { Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
-import { CircleUser, Home, Menu, Package, Search, Users, Map, Calendar, Layers2 } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { useTheme } from "next-themes";
+import { CircleUser, Home, Menu, Package, Users, Map, Calendar, Layers2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import logo from "@/public/media/image/logo_homecyclhome_grayscale.png";
 
 interface LayoutProps {

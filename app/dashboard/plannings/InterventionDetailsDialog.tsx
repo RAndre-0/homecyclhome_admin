@@ -10,7 +10,6 @@ import {
 import { Intervention } from "@/types/types";
 import { apiService } from "@/services/api-service";
 import { useToast } from "@/hooks/use-toast";
-import { log } from "node:console";
 
 // Définition de l'interface du composant
 interface InterventionDetailsProps {

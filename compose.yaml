@@ -1,20 +1,22 @@
-version: '3.8'
-
 services:
   admin:
-    build: .
-    container_name: admin_app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_ROUTE: ${NEXT_PUBLIC_API_ROUTE}
+        NEXT_PUBLIC_TOKEN_NAME: ${NEXT_PUBLIC_TOKEN_NAME}
+        APP_VERSION: ${APP_VERSION:-1.0.0}
+    container_name: ${ADMIN_CONTAINER_NAME:-homecyclhome_admin}
+    # Expose uniquement en local pour que seul Caddy y accède
     ports:
-      - "3000:3000"
+      - "127.0.0.1:${ADMIN_PORT:-3001}:3000"
+    # Charge les variables runtime depuis .env
+    env_file:
+      - .env
     environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_API_ROUTE: https://api.homecyclhome.site/api/
-    depends_on:
-      - api
+      NODE_ENV: ${NODE_ENV:-production}
+      NEXT_PUBLIC_API_ROUTE: ${NEXT_PUBLIC_API_ROUTE}
+      NEXT_PUBLIC_TOKEN_NAME: ${NEXT_PUBLIC_TOKEN_NAME}
+      NEXT_TELEMETRY_DISABLED: ${NEXT_TELEMETRY_DISABLED:-1}
     restart: unless-stopped
-
-  api:
-    image: ton_image_symfony
-    container_name: api_app
-    ports:
-      - "8000:80"

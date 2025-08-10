@@ -11,7 +11,7 @@ import { Intervention, Technicien } from "@/types/types";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
 import InterventionDetailsDialog from './InterventionDetailsDialog';
-import CreateInterventionDialog from "./CreateInterventiondialog";
+import CreateInterventionDialog from "./CreateInterventionDialog";
 
 dayjs.extend(duration);
 

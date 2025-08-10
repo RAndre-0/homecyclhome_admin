@@ -23,11 +23,6 @@ const monthTranslation: { [key: string]: string } = {
   December: "Décembre",
 }
 
-// Ordre des mois pour le tri
-const orderedMonths = [
-  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
-]
-
 const chartConfig: ChartConfig = {
   maintenance: {
     label: "Maintenance",
@@ -39,39 +34,46 @@ const chartConfig: ChartConfig = {
   },
 }
 
+type InterventionStats = {
+  month: string;
+  maintenance: number;
+  reparation: number;
+};
+
+
 export function InterventionsChart() {
-  const [chartData, setChartData] = useState<any[]>([])
+  const [chartData, setChartData] = useState<InterventionStats[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [trend, setTrend] = useState<{ percentage: number, isUp: boolean } | null>(null)
 
   useEffect(() => {
     const abortController = new AbortController();
-  
+
     const fetchStats = async () => {
       try {
         setLoading(true);
         const data = await apiService("interventions/stats", "GET", { signal: abortController.signal });
-  
+
         // Transformation des données
-        const transformedData = data.map((item: any) => ({
-          month: monthTranslation[item.month] || item.month, // Traduction en français
+        const transformedData: InterventionStats[] = data.map((item: any) => ({
+          month: monthTranslation[item.month] || item.month,
           maintenance: item.maintenance || 0,
           reparation: item.reparation || 0,
         }));
-  
+
         // Récupération du mois actuel pour trier correctement
         const currentMonth = new Date().toLocaleString("fr-FR", { month: "long" }); // Ex: "février"
-  
+
         // Trouve l'index du mois actuel
         const currentMonthIndex = transformedData.findIndex((item: { month: string }) => item.month === currentMonth);
-  
+
         // Fait pivoter le tableau pour que le mois actuel soit le dernier
         const rotatedData = [
           ...transformedData.slice(currentMonthIndex + 1),
           ...transformedData.slice(0, currentMonthIndex + 1)
         ];
-  
+
         setChartData(rotatedData);
 
         if (rotatedData.length > 1) {
@@ -95,7 +97,7 @@ export function InterventionsChart() {
         }
       }
     };
-  
+
     fetchStats();
     return () => abortController.abort();
   }, []);
@@ -130,7 +132,7 @@ export function InterventionsChart() {
     <Card>
       <CardHeader>
         <CardTitle>Interventions - Statistiques par Mois</CardTitle>
-        <CardDescription>Nombre d'interventions par type sur les 12 derniers mois</CardDescription>
+        <CardDescription>Nombre d&apos;interventions par type sur les 12 derniers mois</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>

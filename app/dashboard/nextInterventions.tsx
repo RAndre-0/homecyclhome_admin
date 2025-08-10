@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { apiService } from "@/services/api-service"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState } from "react";
+import { apiService } from "@/services/api-service";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface NextIntervention {
     interventionId: number;
@@ -17,7 +17,6 @@ interface NextIntervention {
 export function NextInterventions() {
     const [loading, setLoading] = useState(true);
     const [interventions, setInterventions] = useState<NextIntervention[]>([]);
-    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         const fetchInterventions = async () => {
@@ -47,19 +46,6 @@ export function NextInterventions() {
           </Card>
         )
     }
-
-    if (error) {
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Erreur</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div>{error}</div>
-            </CardContent>
-          </Card>
-        )
-      }
 
     return (
         <Card>
