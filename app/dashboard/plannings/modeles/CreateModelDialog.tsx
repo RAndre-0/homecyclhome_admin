@@ -20,7 +20,6 @@ interface CreateModelDialogProps {
     onModelCreated: (newModel: Model) => void;
 }
 
-
 export default function CreateModelDialog({ onModelCreated }: CreateModelDialogProps) {
     const [newModelName, setNewModelName] = useState("");
     const { toast } = useToast();
@@ -28,21 +27,19 @@ export default function CreateModelDialog({ onModelCreated }: CreateModelDialogP
 
     const createModel = async () => {
         if (newModelName.length > 2) {
-          try {
-            const newModel: Model = await apiService("modeles-planning", "POST", { name: newModelName });
-            setNewModelName("");
-            toast({ title: "Succès", description: "Modèle créé avec succès." });
-            setOpen(false);
-            onModelCreated(newModel);
-          } catch (error) {
-            toast({ title: "Erreur", description: "Échec de la création du modèle." });
-          }
+            try {
+                const newModel: Model = await apiService("modeles-planning", "POST", { name: newModelName });
+                setNewModelName("");
+                toast({ title: "Succès", description: "Modèle créé avec succès." });
+                setOpen(false);
+                onModelCreated(newModel);
+            } catch {
+                toast({ title: "Erreur", description: "Échec de la création du modèle." });
+            }
         } else {
-          toast({ title: "Erreur", description: "3 caractères minimum." });
+            toast({ title: "Erreur", description: "3 caractères minimum." });
         }
-      };
-      
-
+    };
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -53,7 +50,7 @@ export default function CreateModelDialog({ onModelCreated }: CreateModelDialogP
                 <DialogHeader>
                     <DialogTitle>Créer un nouveau modèle</DialogTitle>
                     <DialogDescription>
-                        Entrez le nom du nouveau modèle et cliquez sur "Créer".
+                        Entrez le nom du nouveau modèle et cliquez sur « Créer ».
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">

@@ -1,5 +1,4 @@
 "use client"
-import { Metadata } from "next";
 import { apiService } from "@/services/api-service";
 import * as React from "react"
 import {
@@ -36,8 +35,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-
-//export const metadata: Metadata = {title: "Utilisateurs"};
 
 export type User = {
   id: number;
@@ -96,9 +93,10 @@ export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "roles",
     header: "Rôle",
-    cell: ({ row }) => (
-      <div className="capitalize">{row.getValue("roles")}</div>
-    ),
+    cell: ({ row }) => {
+      const roles = row.getValue("roles") as string[];
+      return <div className="capitalize">{roles[0] ?? ""}</div>;
+    },
   },
   {
     id: "actions",
@@ -117,7 +115,7 @@ export const columns: ColumnDef<User>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(user.id)}
+              onClick={() => navigator.clipboard.writeText(String(user.id))}
             >
               Copy user ID
             </DropdownMenuItem>
@@ -138,45 +136,40 @@ export const columns: ColumnDef<User>[] = [
   },
 ];
 
-
 export default function Users() {
-  const [users, setUsers] = React.useState([]);
-  const [loading, setLoading] = React.useState(true); // État de chargement
+  const [users, setUsers] = React.useState<User[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     const fetchUsers = async () => {
       try {
-        setLoading(true); // Commence à charger les données
-        let data = await apiService('users', 'GET');
+        setLoading(true);
+        const data = (await apiService("users", "GET")) as User[];
 
-        // N'afficher le rôle que s'il offre des droits spécifiques
-        data = data.map((user: any) => ({
+        // Ne pas afficher le rôle par défaut ROLE_USER
+        const normalized: User[] = data.map((user) => ({
           ...user,
-          roles: user.roles[0] == "ROLE_USER" ? "" : user.roles[0]
+          roles: user.roles[0] === "ROLE_USER" ? [] : [user.roles[0] ?? ""].filter(Boolean) as string[],
         }));
 
-        setUsers(data); // Met à jour les utilisateurs avec les rôles modifiés
+        setUsers(normalized);
       } catch (error) {
         console.error("Error fetching users:", error);
       } finally {
-        setLoading(false); // Terminer le chargement
+        setLoading(false);
       }
     };
 
     fetchUsers();
   }, []);
-console.log(users);
 
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
 
   const table = useReactTable({
-    data: users,  // Utilisez les données dynamiques ici
+    data: users,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -197,10 +190,14 @@ console.log(users);
   if (loading) {
     return <p>Chargement des utilisateurs...</p>;
   }
+
   return (
     <div className="flex min-h-screen items-start justify-center">
       <div className="w-full">
-        <Button className="mb-8"><Link href={`/dashboard/utilisateurs/creer`}>Ajouter un utilisateur</Link></Button>
+        <Button className="mb-8">
+          <Link href={`/dashboard/utilisateurs/creer`}>Ajouter un utilisateur</Link>
+        </Button>
+
         <div className="flex items-center py-4">
           <Input
             placeholder="Filtrer..."
@@ -237,6 +234,7 @@ console.log(users);
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -287,6 +285,7 @@ console.log(users);
             </TableBody>
           </Table>
         </div>
+
         <div className="flex items-center justify-end space-x-2 py-4">
           <div className="flex-1 text-sm text-muted-foreground">
             {table.getFilteredSelectedRowModel().rows.length} /{" "}

@@ -10,6 +10,7 @@ import {
 import { Intervention } from "@/types/types";
 import { apiService } from "@/services/api-service";
 import { useToast } from "@/hooks/use-toast";
+import Image from "next/image";
 
 // Définition de l'interface du composant
 interface InterventionDetailsProps {
@@ -32,7 +33,7 @@ export default function InterventionDetailsDialog({ intervention, isOpen, onClos
         if (isConfirmingDelete) {
             setIsDeleting(true); // Indiquer que la suppression est en cours
             try {
-                const response = await apiService(`interventions/${intervention.id}`, "DELETE");
+                await apiService(`interventions/${intervention.id}`, "DELETE");
 
                 // Afficher un toast de confirmation de suppression
                 toast({
@@ -88,7 +89,20 @@ export default function InterventionDetailsDialog({ intervention, isOpen, onClos
                                 </p>
                             )}
                             {intervention.photo && (
-                                <img src={intervention.photo} alt="Photo du vélo" />
+                            <div className="relative w-full max-w-sm h-48">
+                                <Image
+                                src={
+                                    intervention.photo.startsWith("http")
+                                    ? intervention.photo
+                                    : `${(process.env.NEXT_PUBLIC_API_ROUTE ?? "").replace(/\/+$/,"")}/${intervention.photo.replace(/^\/+/, "")}`
+                                }
+                                alt="Photo du vélo"
+                                fill
+                                sizes="(max-width: 640px) 100vw, 400px"
+                                className="object-cover rounded-md"
+                                unoptimized
+                                />
+                            </div>
                             )}
                         </>
                     )}

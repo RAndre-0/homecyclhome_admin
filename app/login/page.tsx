@@ -1,6 +1,5 @@
 'use client';
 import Image from "next/image";
-import Link from "next/link";
 import loginBg from "../../public/media/image/login_bg.jpg";
 import { useState } from "react";
 import { useCookies } from 'react-cookie';
@@ -9,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -19,25 +17,23 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { loginSchema } from "@/schemas/schemas"; // Import du schéma de validation
+import { loginSchema } from "@/schemas/schemas";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME ?? 'hch_token';
-  const [cookies, setCookie] = useCookies([TOKEN_NAME]);
+  const [, setCookie] = useCookies([TOKEN_NAME]); // ignore the 'cookies' value
   const router = useRouter();
 
-  // Formulaire avec validation Zod
   const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema), // Utilisation du schéma pour la validation
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: ""
     },
   });
 
-  // Gestion de la soumission
   async function onSubmit(values: z.infer<typeof loginSchema>) {
     setLoading(true);
     setErrorMessage(null);
@@ -60,15 +56,14 @@ export default function Login() {
       const data = await response.json();
       const token = data.token;
 
-      // Configuration sécurisée du cookie
       setCookie(TOKEN_NAME, token, {
-        path: '/', 
-        maxAge: 60000, 
-        secure: process.env.NODE_ENV === 'production', // Secure en production uniquement
+        path: '/',
+        maxAge: 60000,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
       });
 
-      router.push('/'); // Redirection après login
+      router.push('/');
     } catch (error) {
       console.error("Login error:", error);
       setErrorMessage("Identifiants incorrects. Veuillez vérifier votre email et votre mot de passe.");

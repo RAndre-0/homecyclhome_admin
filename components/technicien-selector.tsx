@@ -16,10 +16,13 @@ interface TechnicienSelectorProps {
   defaultTechnicien?: Technicien | null;
 }
 
-export default function TechnicienSelector({ onTechnicienChange, defaultTechnicien }: TechnicienSelectorProps) {
+export default function TechnicienSelector({
+  onTechnicienChange,
+  defaultTechnicien,
+}: TechnicienSelectorProps) {
   const [techniciens, setTechniciens] = useState<Technicien[]>([]);
   const [selectedTechnicienId, setSelectedTechnicienId] = useState<string>(
-      defaultTechnicien ? defaultTechnicien.id.toString() : "default"
+    defaultTechnicien ? defaultTechnicien.id.toString() : "default"
   );
 
   useEffect(() => {
@@ -27,6 +30,7 @@ export default function TechnicienSelector({ onTechnicienChange, defaultTechnici
       try {
         const data = await apiService("users/role-ROLE_TECHNICIEN", "GET");
         setTechniciens(data);
+
         if (data.length > 0 && !defaultTechnicien) {
           setSelectedTechnicienId(data[0].id.toString());
           onTechnicienChange(data[0]);
@@ -38,7 +42,7 @@ export default function TechnicienSelector({ onTechnicienChange, defaultTechnici
       }
     };
     fetchTechniciens();
-  }, [defaultTechnicien]);
+  }, [defaultTechnicien, onTechnicienChange]);
 
   const handleSelectChange = (value: string) => {
     setSelectedTechnicienId(value);

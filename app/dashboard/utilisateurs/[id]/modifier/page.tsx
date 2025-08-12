@@ -98,7 +98,7 @@ export default function EditUser({ params }: EditUserProps) {
   return (
     <div className="min-h-screen flex items-start justify-center">
       <div className="max-w-md w-full p-6 rounded-md shadow-md">
-        <h2 className="text-2xl font-bold mb-4">Modifier l'utilisateur</h2>
+        <h2 className="text-2xl font-bold mb-4">Modifier l`&apos;`utilisateur</h2>
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="firstName">Prénom</Label>

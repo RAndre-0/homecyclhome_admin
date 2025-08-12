@@ -1,21 +1,12 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import {
-  CheckIcon,
-  XCircle,
-  ChevronDown,
-  XIcon,
-} from "lucide-react";
+import { CheckIcon, XCircle, ChevronDown, XIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -26,21 +17,14 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 
-/**
- * Variants for the multi-select component to handle different styles.
- * Uses class-variance-authority (cva) to define different styles based on "variant" prop.
- */
 const multiSelectVariants = cva(
   "m-1 transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 duration-300",
   {
     variants: {
       variant: {
-        default:
-          "border-foreground/10 text-foreground bg-card hover:bg-card/80",
-        secondary:
-          "border-foreground/10 bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+        default: "border-foreground/10 text-foreground bg-card hover:bg-card/80",
+        secondary: "border-foreground/10 bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         inverted: "inverted",
       },
     },
@@ -50,68 +34,22 @@ const multiSelectVariants = cva(
   }
 );
 
-/**
- * Props for MultiSelect component
- */
 interface MultiSelectProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof multiSelectVariants> {
-  /**
-   * An array of option objects to be displayed in the multi-select component.
-   * Each option object has a label, value, and an optional icon.
-   */
+  VariantProps<typeof multiSelectVariants> {
   options: {
-    /** The text to display for the option. */
     label: string;
-    /** The unique value associated with the option. */
     value: string;
   }[];
-
-  /**
-   * Callback function triggered when the selected values change.
-   * Receives an array of the new selected values.
-   */
   onValueChange: (value: string[]) => void;
-
-  /** The default selected values when the component mounts. */
   defaultValue?: string[];
-
-  /**
-   * Placeholder text to be displayed when no values are selected.
-   * Optional, defaults to "Select options".
-   */
   placeholder?: string;
-
-  /**
-   * Maximum number of items to display. Extra selected items will be summarized.
-   * Optional, defaults to 3.
-   */
   maxCount?: number;
-
-  /**
-   * The modality of the popover. When set to true, interaction with outside elements
-   * will be disabled and only popover content will be visible to screen readers.
-   * Optional, defaults to false.
-   */
   modalPopover?: boolean;
-
-  /**
-   * If true, renders the multi-select component as a child of another component.
-   * Optional, defaults to false.
-   */
-  asChild?: boolean;
-
-  /**
-   * Additional class names to apply custom styles to the multi-select component.
-   * Optional, can be used to add custom styles.
-   */
   className?: string;
 }
 
-export const MultiSelect = React.forwardRef<
-  HTMLButtonElement,
-  MultiSelectProps
->(
+export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
   (
     {
       options,
@@ -121,19 +59,15 @@ export const MultiSelect = React.forwardRef<
       placeholder = "Select options",
       maxCount = 3,
       modalPopover = false,
-      asChild = false,
       className,
       ...props
     },
     ref
   ) => {
-    const [selectedValues, setSelectedValues] =
-      React.useState<string[]>(defaultValue);
+    const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
 
-    const handleInputKeyDown = (
-      event: React.KeyboardEvent<HTMLInputElement>
-    ) => {
+    const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter") {
         setIsPopoverOpen(true);
       } else if (event.key === "Backspace" && !event.currentTarget.value) {
@@ -178,11 +112,7 @@ export const MultiSelect = React.forwardRef<
     };
 
     return (
-      <Popover
-        open={isPopoverOpen}
-        onOpenChange={setIsPopoverOpen}
-        modal={modalPopover}
-      >
+      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen} modal={modalPopover}>
         <PopoverTrigger asChild>
           <Button
             ref={ref}
@@ -199,12 +129,7 @@ export const MultiSelect = React.forwardRef<
                   {selectedValues.slice(0, maxCount).map((value) => {
                     const option = options.find((o) => o.value === value);
                     return (
-                      <Badge
-                        key={value}
-                        className={cn(
-                          multiSelectVariants({ variant })
-                        )}
-                      >
+                      <Badge key={value} className={cn(multiSelectVariants({ variant }))}>
                         {option?.label}
                         <XCircle
                           className="ml-2 h-4 w-4 cursor-pointer"
@@ -242,41 +167,25 @@ export const MultiSelect = React.forwardRef<
                       handleClear();
                     }}
                   />
-                  <Separator
-                    orientation="vertical"
-                    className="flex min-h-6 h-full"
-                  />
+                  <Separator orientation="vertical" className="flex min-h-6 h-full" />
                   <ChevronDown className="h-4 mx-2 cursor-pointer text-muted-foreground" />
                 </div>
               </div>
             ) : (
               <div className="flex items-center justify-between w-full mx-auto">
-                <span className="text-sm text-muted-foreground mx-3">
-                  {placeholder}
-                </span>
+                <span className="text-sm text-muted-foreground mx-3">{placeholder}</span>
                 <ChevronDown className="h-4 cursor-pointer text-muted-foreground mx-2" />
               </div>
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent
-          className="w-auto p-0"
-          align="start"
-          onEscapeKeyDown={() => setIsPopoverOpen(false)}
-        >
+        <PopoverContent className="w-auto p-0" align="start" onEscapeKeyDown={() => setIsPopoverOpen(false)}>
           <Command>
-            <CommandInput
-              placeholder="Recherche..."
-              onKeyDown={handleInputKeyDown}
-            />
+            <CommandInput placeholder="Recherche..." onKeyDown={handleInputKeyDown} />
             <CommandList>
               <CommandEmpty>Aucun résultat trouvé.</CommandEmpty>
               <CommandGroup>
-                <CommandItem
-                  key="all"
-                  onSelect={toggleAll}
-                  className="cursor-pointer"
-                >
+                <CommandItem key="all" onSelect={toggleAll} className="cursor-pointer">
                   <div
                     className={cn(
                       "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
@@ -300,9 +209,7 @@ export const MultiSelect = React.forwardRef<
                       <div
                         className={cn(
                           "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                          isSelected
-                            ? "bg-primary text-primary-foreground"
-                            : "opacity-50 [&_svg]:invisible"
+                          isSelected ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible"
                         )}
                       >
                         <CheckIcon className="h-4 w-4" />
@@ -317,16 +224,10 @@ export const MultiSelect = React.forwardRef<
                 <div className="flex items-center justify-between">
                   {selectedValues.length > 0 && (
                     <>
-                      <CommandItem
-                        onSelect={handleClear}
-                        className="flex-1 justify-center cursor-pointer"
-                      >
+                      <CommandItem onSelect={handleClear} className="flex-1 justify-center cursor-pointer">
                         Réinitialiser
                       </CommandItem>
-                      <Separator
-                        orientation="vertical"
-                        className="flex min-h-6 h-full"
-                      />
+                      <Separator orientation="vertical" className="flex min-h-6 h-full" />
                     </>
                   )}
                   <CommandItem

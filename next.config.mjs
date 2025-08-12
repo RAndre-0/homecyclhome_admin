@@ -3,12 +3,13 @@ const nextConfig = {
   output: 'standalone',
 
   // ⬇️ MVP: ne pas casser le build à cause d'ESLint/TS
-  eslint: { ignoreDuringBuilds: true },
-  typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: false },
+  typescript: { ignoreBuildErrors: false },
   
   // Images
   images: {
     remotePatterns: [
+      { protocol: 'https', hostname: 'api.homecyclhome.site' },
       {
         protocol: 'https',
         hostname: 'api.homecyclhome.site',

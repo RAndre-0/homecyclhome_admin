@@ -4,6 +4,7 @@ import { Polygon, Technicien } from '@/types/types';
 import { EditControl } from "react-leaflet-draw";
 import "leaflet/dist/leaflet.css";
 import "leaflet-draw/dist/leaflet.draw.css";
+import type { Feature, Polygon as GeoJSONPolygon } from "geojson";
 import L from "leaflet";
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { apiService } from "@/services/api-service";
@@ -31,6 +32,8 @@ const styles = {
 interface ExtendedPolylineOptions extends L.PolylineOptions {
     id?: number;
 }
+
+type ExtendedPolygonLayer = L.Polygon & { options: ExtendedPolylineOptions };
 
 export default function Map() {
     const [polygons, setPolygons] = useState<Polygon[]>([]);
@@ -78,16 +81,18 @@ export default function Map() {
             toast({ title: "Erreur", description: "Échec de la création de la zone." });
         }
     };
-    const _onCreate = (e: any) => {
-        const newPolygon = e.layer.toGeoJSON();
-        const coordinates = newPolygon.geometry.coordinates[0];
+
+    const _onCreate = (e: L.DrawEvents.Created) => {
+        const layer = e.layer as L.Polygon;
+        const feature = layer.toGeoJSON() as Feature<GeoJSONPolygon>;
+        const ring = feature.geometry.coordinates[0] as [number, number][];
 
         const payload: Polygon = {
-            id: 0,
-            name: `Zone${Math.floor(Math.random() * 1000000000)}`,
-            color: "#FF5733",
-            coordinates: coordinates.map((coord: [number, number]) => ({ longitude: coord[0], latitude: coord[1] })),
-            technicien: null,
+        id: 0,
+        name: `Zone${Math.floor(Math.random() * 1_000_000_000)}`,
+        color: "#FF5733",
+        coordinates: ring.map(([lng, lat]) => ({ longitude: lng, latitude: lat })),
+        technicien: null,
         };
 
         savePolygon(payload);
@@ -109,33 +114,35 @@ export default function Map() {
             toast({ title: "Erreur", description: "Échec de la modification de la zone." });
         }
     };
-    const _onEditPath = (e: any) => {
-        e.layers.eachLayer((layer: any) => {
-            const layerId = layer.options.id;
-            if (!layerId) return;
 
-            // Empêche la mise à jour multiple
-            if (editingIds.current.has(layerId)) {
-                console.warn(`Modification déjà en cours pour la zone ${layerId}`);
-                return;
-            }
-            editingIds.current.add(layerId);
+    const _onEditPath = (e: L.DrawEvents.Edited) => {
+        e.layers.eachLayer((layer: L.Layer) => {
+        // On travaille uniquement sur les polygones qu’on a créés
+        if (!(layer instanceof L.Polygon)) return;
+        const poly = layer as ExtendedPolygonLayer;
+        const layerId = poly.options.id;
+        if (!layerId) return;
 
-            const updatedCoordinates = layer.toGeoJSON().geometry.coordinates[0].map(
-                (coord: [number, number]) => ({
-                    longitude: coord[0],
-                    latitude: coord[1],
-                })
-            );
+        if (editingIds.current.has(layerId)) return;
+        editingIds.current.add(layerId);
 
-            const updatedPolygon = polygonsRef.current.find((p) => p.id === layerId);
-            if (!updatedPolygon) return;
+        const feature = poly.toGeoJSON() as Feature<GeoJSONPolygon>;
+        const ring = feature.geometry.coordinates[0] as [number, number][];
+        const updatedCoordinates = ring.map(([lng, lat]) => ({
+            longitude: lng,
+            latitude: lat,
+        }));
 
-            const newPolygonData = { ...updatedPolygon, coordinates: updatedCoordinates };
+        const updatedPolygon = polygonsRef.current.find((p) => p.id === layerId);
+        if (!updatedPolygon) {
+            editingIds.current.delete(layerId);
+            return;
+        }
 
-            updatePolygon(newPolygonData).finally(() => {
-                editingIds.current.delete(layerId);
-            });
+        const newPolygonData = { ...updatedPolygon, coordinates: updatedCoordinates };
+        updatePolygon(newPolygonData).finally(() => {
+            editingIds.current.delete(layerId);
+        });
         });
     };
 
@@ -158,12 +165,12 @@ export default function Map() {
             deletingIds.current.delete(id);
         }
     };
-    const _onDeleted = (e: any) => {
-        e.layers.eachLayer((layer: any) => {
-            const layerId = layer.options.id;
-            if (layerId) {
-                deletePolygon(layerId);
-            }
+    const _onDeleted = (e: L.DrawEvents.Deleted) => {
+        e.layers.eachLayer((layer: L.Layer) => {
+        if (!(layer instanceof L.Polygon)) return;
+        const poly = layer as ExtendedPolygonLayer;
+        const layerId = poly.options.id;
+        if (layerId) deletePolygon(layerId);
         });
     };
 

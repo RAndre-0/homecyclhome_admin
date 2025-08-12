@@ -10,8 +10,11 @@ import { apiService, convertKeysToCamel } from "@/services/api-service";
 import { Intervention, Technicien } from "@/types/types";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
-import InterventionDetailsDialog from './InterventionDetailsDialog';
+import InterventionDetailsDialog from "./InterventionDetailsDialog";
 import CreateInterventionDialog from "./CreateInterventionDialog";
+import { EventClickArg } from "@fullcalendar/core";
+import { DateClickArg } from "@fullcalendar/interaction";
+
 
 dayjs.extend(duration);
 
@@ -27,15 +30,11 @@ export default function FullCalendarAdmin({ selectedTechnicien, onRefresh }: Cal
   const [isDialog2Open, setDialog2Open] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  // Récupérer les interventions d'un technicien
   useEffect(() => {
     if (selectedTechnicien) {
       const fetchInterventions = async () => {
         try {
-          const data = await apiService(
-            `interventions/technicien/${selectedTechnicien.id}`,
-            "GET"
-          );
+          const data = await apiService(`interventions/technicien/${selectedTechnicien.id}`, "GET");
           setInterventions(data);
         } catch (error) {
           console.error("Erreur lors de la récupération des interventions", error);
@@ -47,66 +46,66 @@ export default function FullCalendarAdmin({ selectedTechnicien, onRefresh }: Cal
     }
   }, [selectedTechnicien]);
 
-  const handleEventClick = (info: any) => {
-    info.jsEvent.preventDefault(); // Empêche la navigation par défaut
-    const clickedIntervention = interventions.find(intervention => intervention.id === parseInt(info.event.id));
-    if (clickedIntervention) {
-        setSelectedIntervention(convertKeysToCamel(clickedIntervention)); // Convertit les clés en camelCase
-        setDialogOpen(true);
-    }
+const handleEventClick = (info: EventClickArg) => {
+  info.jsEvent?.preventDefault();
+  const clicked = interventions.find(i => i.id.toString() === info.event.id);
+  if (clicked) {
+    setSelectedIntervention(convertKeysToCamel(clicked));
+    setDialogOpen(true);
+  }
 };
 
-  // Gérer le clic sur une date vide
-  const handleDateClick = (arg: any) => {
-    setSelectedDate(arg.dateStr); // Stocke la date cliquée
-    setDialog2Open(true); // Ouvre le formulaire
-  };
+const handleDateClick = (arg: DateClickArg) => {
+  setSelectedDate(arg.dateStr);
+  setDialog2Open(true);
+};
 
   return (
     <>
-    <FullCalendar
+      <FullCalendar
         plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
         initialView="timeGridWeek"
         weekends={false}
         events={interventions.map((intervention) => ({
           id: intervention.id.toString(),
-          title: intervention.typeIntervention?.nom ?? 'Intervention',
+          title: intervention.typeIntervention?.nom ?? "Intervention",
           start: intervention.debut,
           end: intervention.fin || undefined,
           color: intervention.client ? "#3e69a0" : "#757575",
-      }))}
+        }))}
         eventClick={handleEventClick}
         locale={frLocale}
-        selectable={true}
+        selectable
         allDaySlot={false}
-        slotMinTime={"09:00:00"}
-        slotMaxTime={"18:00:00"}
-        height={"100%"}
+        slotMinTime="09:00:00"
+        slotMaxTime="18:00:00"
+        height="100%"
         dateClick={handleDateClick}
         timeZone="Europe/Paris"
-    />
-    <InterventionDetailsDialog
+      />
+
+      <InterventionDetailsDialog
         intervention={selectedIntervention}
         isOpen={isDialogOpen}
         onClose={() => setDialogOpen(false)}
-    />
+      />
+
       <CreateInterventionDialog
         isOpen={isDialog2Open}
         onClose={() => setDialog2Open(false)}
-        selectedDate={selectedDate} // Passe la date sélectionnée
-        onRefresh={onRefresh} // Rafraîchit les interventions
+        selectedDate={selectedDate}
+        onRefresh={onRefresh}
       />
-</>
-  );
-}
-
-function renderEventContent(eventInfo: any) {
-  return (
-    <>
-      <b>{eventInfo.timeText}</b>
-      <br />
-      <i>{eventInfo.event.title}</i>
     </>
   );
 }
 
+// function renderEventContent(eventInfo: EventContentArg) {
+//   return (
+//     <>
+//       <b>{eventInfo.timeText}</b>
+//       <br />
+//       <i>{eventInfo.event.title}</i>
+//     </>
+//   );
+// }

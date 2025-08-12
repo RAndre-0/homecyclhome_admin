@@ -54,7 +54,7 @@ export default function CreateUser() {
                 variant: "default",
             });
             router.push("/dashboard/utilisateurs");
-        } catch (error) {
+        } catch {
             toast({
                 title: "Erreur",
                 description: "Une erreur est survenue lors de la création de l'utilisateur.",

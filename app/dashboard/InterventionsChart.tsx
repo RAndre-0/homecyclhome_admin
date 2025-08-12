@@ -34,6 +34,12 @@ const chartConfig: ChartConfig = {
   },
 }
 
+type ApiInterventionStats = {
+  month: string;
+  maintenance?: number | null;
+  reparation?: number | null;
+};
+
 type InterventionStats = {
   month: string;
   maintenance: number;
@@ -53,39 +59,47 @@ export function InterventionsChart() {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const data = await apiService("interventions/stats", "GET", { signal: abortController.signal });
+        const raw = await apiService("interventions/stats", "GET", { signal: abortController.signal });
+
+        // Sécurise le type de la réponse
+        const list: ApiInterventionStats[] = Array.isArray(raw) ? raw : [];
 
         // Transformation des données
-        const transformedData: InterventionStats[] = data.map((item: any) => ({
-          month: monthTranslation[item.month] || item.month,
-          maintenance: item.maintenance || 0,
-          reparation: item.reparation || 0,
+        const transformedData: InterventionStats[] = list.map(({ month, maintenance, reparation }) => ({
+          month: monthTranslation[month] ?? month,
+          maintenance: Number(maintenance ?? 0),
+          reparation: Number(reparation ?? 0),
         }));
 
-        // Récupération du mois actuel pour trier correctement
-        const currentMonth = new Date().toLocaleString("fr-FR", { month: "long" }); // Ex: "février"
+        // Récupération du mois actuel
+        const currentMonthFr = new Date().toLocaleString("fr-FR", { month: "long" });
+        const norm = (s: string) => s.normalize("NFKD").toLowerCase();
 
         // Trouve l'index du mois actuel
-        const currentMonthIndex = transformedData.findIndex((item: { month: string }) => item.month === currentMonth);
+        const currentMonthIndex = transformedData.findIndex((it) => norm(it.month) === norm(currentMonthFr));
 
         // Fait pivoter le tableau pour que le mois actuel soit le dernier
-        const rotatedData = [
-          ...transformedData.slice(currentMonthIndex + 1),
-          ...transformedData.slice(0, currentMonthIndex + 1)
-        ];
+        const rotatedData =
+          currentMonthIndex >= 0
+            ? [...transformedData.slice(currentMonthIndex + 1), ...transformedData.slice(0, currentMonthIndex + 1)]
+            : transformedData;
 
         setChartData(rotatedData);
 
+        // Tendances (évite division par zéro)
         if (rotatedData.length > 1) {
-          const lastMonthData = rotatedData[rotatedData.length - 2];
-          const currentMonthData = rotatedData[rotatedData.length - 1];
-          const lastMonthTotal = lastMonthData.maintenance + lastMonthData.reparation;
-          const currentMonthTotal = currentMonthData.maintenance + currentMonthData.reparation;
-          const percentageChange = ((currentMonthTotal - lastMonthTotal) / lastMonthTotal) * 100;
-          setTrend({
-            percentage: Math.abs(percentageChange),
-            isUp: percentageChange > 0
-          });
+          const last = rotatedData[rotatedData.length - 2];
+          const curr = rotatedData[rotatedData.length - 1];
+          const lastTotal = last.maintenance + last.reparation;
+          const currTotal = curr.maintenance + curr.reparation;
+
+          if (lastTotal > 0) {
+            const pct = ((currTotal - lastTotal) / lastTotal) * 100;
+            setTrend({ percentage: Math.abs(pct), isUp: pct > 0 });
+          } else {
+            // si mois précédent = 0, on indique +100% si >0, sinon 0%
+            setTrend({ percentage: lastTotal === currTotal ? 0 : 100, isUp: currTotal > 0 });
+          }
         }
 
         setLoading(false);

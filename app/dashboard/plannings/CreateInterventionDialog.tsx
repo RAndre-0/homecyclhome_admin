@@ -19,12 +19,16 @@ import { Technicien } from "@/types/types";
 interface CreateInterventionDialogProps {
     isOpen: boolean;
     onClose: () => void;
-    selectedDate: string | null; // Ajout de la date sélectionnée
+    selectedDate: string | null;
     onRefresh: () => void;
 }
 
-export default function CreateInterventionDialog({ isOpen, onClose, selectedDate, onRefresh }: CreateInterventionDialogProps) {
-    const [typeIntervention, setTypeIntervention] = useState("");
+export default function CreateInterventionDialog({
+    isOpen,
+    onClose,
+    selectedDate,
+    onRefresh,
+}: CreateInterventionDialogProps) {
     const { toast } = useToast();
     const [selectedTypeIntervention, setSelectedTypeIntervention] = useState<number | null>(null);
     const [selectedTechnicien, setSelectedTechnicien] = useState<Technicien | null>(null);
@@ -38,10 +42,10 @@ export default function CreateInterventionDialog({ isOpen, onClose, selectedDate
         try {
             await apiService("interventions", "POST", {
                 typeIntervention: selectedTypeIntervention,
-                debut: selectedDate, 
-                technicien: selectedTechnicien.id, 
+                debut: selectedDate,
+                technicien: selectedTechnicien.id,
             });
-    
+
             toast({ title: "Succès", description: "Intervention créée avec succès." });
             onRefresh();
             onClose();
@@ -57,21 +61,26 @@ export default function CreateInterventionDialog({ isOpen, onClose, selectedDate
                 <DialogHeader>
                     <DialogTitle>Créer une intervention</DialogTitle>
                     <DialogDescription>
-                        Sélectionnez un type d'intervention et confirmez la création.
+                        Sélectionnez un type d&apos;intervention et confirmez la création.
                     </DialogDescription>
                 </DialogHeader>
-                
+
                 <div>
-                    <label>Date sélectionnée</label>
-                    <Input value={selectedDate ? format(new Date(selectedDate), "yyyy-MM-dd HH:mm") : ""} readOnly />
+                    <label htmlFor="selectedDate">Date sélectionnée</label>
+                    <Input
+                        id="selectedDate"
+                        value={selectedDate ? format(new Date(selectedDate), "yyyy-MM-dd HH:mm") : ""}
+                        readOnly
+                    />
                 </div>
-                
+
                 <TypeInterventionSelector onTypeInterventionChange={setSelectedTypeIntervention} />
-                
                 <TechnicienSelector onTechnicienChange={setSelectedTechnicien} />
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={onClose}>Annuler</Button>
+                    <Button variant="outline" onClick={onClose}>
+                        Annuler
+                    </Button>
                     <Button onClick={handleCreate}>Créer</Button>
                 </DialogFooter>
             </DialogContent>
