@@ -11,6 +11,8 @@ import CreateModelDialog from "./CreateModelDialog";
 import CreateModelInterventionDialog from "./CreateModelInterventionDialog";
 import type { Model, InterventionModel, TypeIntervention } from "@/types/types";
 
+type ModelListItem = { id: number; name: string };
+
 dayjs.extend(utc);
 
 export default function ModelesDePlanning() {
@@ -26,8 +28,11 @@ export default function ModelesDePlanning() {
         const data = await apiService("modeles-planning", "GET");
 
         const detailedModels = await Promise.all(
-          data.map(async (model: { id: number; name: string }) => {
-            const detailedModel = await apiService(`modeles-planning/${model.id}`, "GET");
+          (data as ModelListItem[]).map(async (model) => {
+            const detailedModel = await apiService(
+              `modeles-planning/${model.id}`,
+              "GET"
+            );
             return convertKeysToCamel(detailedModel) as Model;
           })
         );
@@ -164,11 +169,10 @@ export default function ModelesDePlanning() {
                 selectedModel.modeleInterventions.map((intervention) => (
                   <div
                     key={intervention.id}
-                    className={`mb-4 rounded-lg p-3 border-x-4 flex flex-row justify-between ${
-                      intervention.typeIntervention?.nom === "Maintenance"
+                    className={`mb-4 rounded-lg p-3 border-x-4 flex flex-row justify-between ${intervention.typeIntervention?.nom === "Maintenance"
                         ? "border-emerald-400"
                         : "border-cyan-200"
-                    }`}
+                      }`}
                   >
                     <div>
                       <p>{intervention.typeIntervention?.nom || "Type inconnu"}</p>
