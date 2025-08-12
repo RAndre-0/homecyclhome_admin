@@ -12,6 +12,29 @@ import CreateModelInterventionDialog from "./CreateModelInterventionDialog";
 import type { Model, InterventionModel, TypeIntervention } from "@/types/types";
 
 type ModelSummary = { id: number; name: string };
+type RawTypeIntervention =
+  | number
+  | { id: number; nom?: string; duree?: string; prixDepart?: number | string };
+
+type RawInterventionCreated = {
+  id: number;
+  interventionTime: string;
+  typeIntervention: RawTypeIntervention;
+};
+
+function isRawInterventionCreated(v: unknown): v is RawInterventionCreated {
+  if (!v || typeof v !== "object") return false;
+  const o = v as Record<string, unknown>;
+  if (!("typeIntervention" in o)) return false;
+  const ti = (o as any).typeIntervention;
+  const tiOk =
+    typeof ti === "number" ||
+    (ti && typeof ti === "object" && "id" in (ti as object));
+  const timeOk =
+    !("interventionTime" in o) ||
+    typeof (o as any).interventionTime === "string";
+  return tiOk && timeOk;
+}
 
 dayjs.extend(utc);
 
@@ -72,27 +95,36 @@ export default function ModelesDePlanning() {
   };
 
   // Normalise ce que renvoie le dialog (qui peut contenir typeIntervention = number)
-  const handleInterventionCreated = (raw: any) => {
+  const handleInterventionCreated = (raw: unknown) => {
     void (async () => {
+      if (!isRawInterventionCreated(raw)) {
+        console.warn("Payload onInterventionCreated inattendu :", raw);
+        return;
+      }
+      const r = raw;
+
       let typeIntervention: TypeIntervention;
 
-      if (typeof raw?.typeIntervention === "number") {
-        const ti = await apiService(`types-intervention/${raw.typeIntervention}`, "GET");
+      if (typeof r.typeIntervention === "number") {
+        const ti = await apiService(
+          `types-intervention/${r.typeIntervention}`,
+          "GET"
+        );
         typeIntervention = convertKeysToCamel(ti) as TypeIntervention;
       } else {
-        // On s'assure que les champs requis existent
-        const obj = raw?.typeIntervention ?? {};
+        const obj = r.typeIntervention;
+        const prix = typeof obj.prixDepart === "number"
+          ? String(obj.prixDepart)
+          : (obj.prixDepart ?? "0");
         typeIntervention = {
-          id: obj.id,
           nom: obj.nom ?? "—",
-          // Valeurs par défaut safe si l’API ne les fournit pas
           duree: obj.duree ?? "00:00:00",
-          prixDepart: obj.prixDepart ?? 0,
-        } as TypeIntervention;
+          prixDepart: prix,
+        };
       }
 
       const normalized: InterventionModel = {
-        ...raw,
+        ...(r as unknown as Omit<InterventionModel, "typeIntervention">),
         typeIntervention,
       };
 
@@ -117,6 +149,7 @@ export default function ModelesDePlanning() {
       );
     })();
   };
+
 
   if (loading) return <div>Chargement en cours...</div>;
   if (error) return <div>{error}</div>;
