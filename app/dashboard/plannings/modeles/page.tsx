@@ -11,7 +11,7 @@ import CreateModelDialog from "./CreateModelDialog";
 import CreateModelInterventionDialog from "./CreateModelInterventionDialog";
 import type { Model, InterventionModel, TypeIntervention } from "@/types/types";
 
-type ModelListItem = { id: number; name: string };
+type ModelSummary = { id: number; name: string };
 
 dayjs.extend(utc);
 
@@ -25,14 +25,11 @@ export default function ModelesDePlanning() {
   useEffect(() => {
     const fetchModels = async () => {
       try {
-        const data = await apiService("modeles-planning", "GET");
+        const data = await apiService("modeles-planning", "GET") as ModelSummary[];
 
         const detailedModels = await Promise.all(
-          (data as ModelListItem[]).map(async (model) => {
-            const detailedModel = await apiService(
-              `modeles-planning/${model.id}`,
-              "GET"
-            );
+          data.map(async (model) => {
+            const detailedModel = await apiService(`modeles-planning/${model.id}`, "GET") as Model;
             return convertKeysToCamel(detailedModel) as Model;
           })
         );
@@ -170,8 +167,8 @@ export default function ModelesDePlanning() {
                   <div
                     key={intervention.id}
                     className={`mb-4 rounded-lg p-3 border-x-4 flex flex-row justify-between ${intervention.typeIntervention?.nom === "Maintenance"
-                        ? "border-emerald-400"
-                        : "border-cyan-200"
+                      ? "border-emerald-400"
+                      : "border-cyan-200"
                       }`}
                   >
                     <div>

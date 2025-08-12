@@ -2,73 +2,74 @@ import { getCookie } from 'cookies-next';
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
-interface RequestOptions {
-  method: HttpMethod;
-  body?: any;
-}
-
-export const convertKeysToCamel = (input: any): any => {
+export const convertKeysToCamel = <T = unknown>(input: unknown): T => {
   if (Array.isArray(input)) {
-    return input.map(convertKeysToCamel);
+    return input.map(v => convertKeysToCamel(v)) as unknown as T;
   } else if (input && typeof input === 'object') {
-    return Object.entries(input).reduce((acc, [key, value]) => {
-      const camelKey = key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-      acc[camelKey] = convertKeysToCamel(value);
-      return acc;
-    }, {} as Record<string, any>);
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
+      const camelKey = k.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+      out[camelKey] = convertKeysToCamel(v);
+    }
+    return out as unknown as T;
   }
-  return input;
+  return input as T;
 };
 
-export const apiService = async (endpoint: string, method: HttpMethod, body?: any) => {
+export const apiService = async (endpoint: string, method: HttpMethod, body?: unknown) => {
   try {
     const TOKEN_NAME = process.env.NEXT_PUBLIC_TOKEN_NAME ?? 'hch_token';
     const token = getCookie(TOKEN_NAME) as string | undefined;
+    if (!token) throw new Error("Token is missing from cookies");
 
-    if (!token) {
-      throw new Error("Token is missing from cookies");
-    }
+    const signal =
+      method === 'GET' &&
+        body && typeof body === 'object' &&
+        'signal' in (body as Record<string, unknown>)
+        ? (body as { signal?: AbortSignal }).signal
+        : undefined;
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}${endpoint}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_ROUTE}${endpoint}`, {
       method,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
+      signal,
       body: method !== 'GET' && body ? JSON.stringify(body) : undefined,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Request failed: ${response.status} - ${errorText}`);
+    if (!res.ok) {
+      const txt = await safeReadText(res);
+      throw new Error(`Request failed: ${res.status} - ${txt}`);
     }
 
-    const contentType = response.headers.get("content-type");
-
-    if (contentType?.includes("application/json")) {
-      const rawData = await response.json();
-      // Conversion en camel case
-      return convertKeysToCamel(rawData);
+    const ct = res.headers.get('content-type');
+    if (ct?.includes('application/json')) {
+      const raw = await res.json();
+      return convertKeysToCamel(raw);
     }
-
-    // Pour les cas comme des blobs ou du texte
     return null;
-
-  } catch (error) {
-    console.error("API Service Error:", error);
-    throw error;
+  } catch (e) {
+    console.error('API Service Error:', e);
+    throw e;
   }
 };
 
-export const convertKeysToSnake = (input: any): any => {
+export const convertKeysToSnake = <T = unknown>(input: unknown): T => {
   if (Array.isArray(input)) {
-    return input.map(convertKeysToSnake);
+    return input.map(v => convertKeysToSnake(v)) as unknown as T;
   } else if (input && typeof input === 'object') {
-    return Object.entries(input).reduce((acc, [key, value]) => {
-      const snakeKey = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
-      acc[snakeKey] = convertKeysToSnake(value);
-      return acc;
-    }, {} as Record<string, any>);
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(input as Record<string, unknown>)) {
+      const snakeKey = k.replace(/[A-Z]/g, (L) => `_${L.toLowerCase()}`);
+      out[snakeKey] = convertKeysToSnake(v);
+    }
+    return out as unknown as T;
   }
-  return input;
+  return input as T;
 };
+
+async function safeReadText(res: Response) {
+  try { return await res.text(); } catch { return '<no body>'; }
+}
