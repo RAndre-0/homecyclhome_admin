@@ -28,7 +28,7 @@ export default function CreateModelDialog({ onModelCreated }: CreateModelDialogP
     const createModel = async () => {
         if (newModelName.length > 2) {
             try {
-                const newModel: Model = await apiService("modeles-planning", "POST", { name: newModelName });
+                const newModel = (await apiService("modeles-planning", "POST", { name: newModelName })) as Model;
                 setNewModelName("");
                 toast({ title: "Succès", description: "Modèle créé avec succès." });
                 setOpen(false);

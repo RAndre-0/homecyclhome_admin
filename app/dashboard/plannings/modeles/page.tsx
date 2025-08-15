@@ -10,6 +10,7 @@ import { X, Clock, Timer } from "lucide-react";
 import CreateModelDialog from "./CreateModelDialog";
 import CreateModelInterventionDialog from "./CreateModelInterventionDialog";
 import type { Model, InterventionModel, TypeIntervention } from "@/types/types";
+import TypeInterventionManager from "./TypeInterventionManager";
 
 type ModelSummary = { id: number; name: string };
 type RawTypeIntervention =
@@ -71,84 +72,30 @@ export default function ModelesDePlanning() {
   const removeIntervention = async (interventionId: number) => {
     try {
       await apiService(`modele-interventions/${interventionId}`, "DELETE");
-
-      if (selectedModel) {
-        const updatedInterventions = selectedModel.modeleInterventions.filter(
-          (intervention) => intervention.id !== interventionId
-        );
-
-        setSelectedModel({ ...selectedModel, modeleInterventions: updatedInterventions });
-
-        setModels((prev) =>
-          prev.map((model) =>
-            model.id === selectedModel.id
-              ? { ...model, modeleInterventions: updatedInterventions }
-              : model
-          )
-        );
-      }
-
+      await refreshSelectedModel();
       toast({ title: "Succès", description: "Intervention supprimée avec succès." });
     } catch {
       toast({ title: "Erreur", description: "Échec de la suppression de l'intervention." });
     }
   };
 
-  // Normalise ce que renvoie le dialog (qui peut contenir typeIntervention = number)
-  const handleInterventionCreated = (raw: unknown) => {
-    void (async () => {
-      if (!isRawInterventionCreated(raw)) {
-        console.warn("Payload onInterventionCreated inattendu :", raw);
-        return;
-      }
-      const r = raw;
+  async function refreshSelectedModel() {
+    if (!selectedModel) return;
+    try {
+      const detailed = await apiService(`modeles-planning/${selectedModel.id}`, "GET");
+      const camel = convertKeysToCamel(detailed) as Model;
+      setSelectedModel(camel);
+      setModels((prev) => prev.map((m) => (m.id === camel.id ? camel : m)));
+    } catch (e) {
+      console.error("Erreur lors du rafraîchissement du modèle", e);
+    }
+  }
 
-      let typeIntervention: TypeIntervention;
-
-      if (typeof r.typeIntervention === "number") {
-        const ti = await apiService(
-          `types-intervention/${r.typeIntervention}`,
-          "GET"
-        );
-        typeIntervention = convertKeysToCamel(ti) as TypeIntervention;
-      } else {
-        const obj = r.typeIntervention;
-        const prix = typeof obj.prixDepart === "number"
-          ? String(obj.prixDepart)
-          : (obj.prixDepart ?? "0");
-        typeIntervention = {
-          nom: obj.nom ?? "—",
-          duree: obj.duree ?? "00:00:00",
-          prixDepart: prix,
-        };
-      }
-
-      const normalized: InterventionModel = {
-        ...(r as unknown as Omit<InterventionModel, "typeIntervention">),
-        typeIntervention,
-      };
-
-      if (!selectedModel) return;
-
-      const updatedInterventions: InterventionModel[] = [
-        ...selectedModel.modeleInterventions,
-        normalized,
-      ];
-
-      setSelectedModel({
-        ...selectedModel,
-        modeleInterventions: updatedInterventions,
-      });
-
-      setModels((prev) =>
-        prev.map((model) =>
-          model.id === selectedModel.id
-            ? { ...model, modeleInterventions: updatedInterventions }
-            : model
-        )
-      );
-    })();
-  };
+const handleInterventionCreated = () => {
+  void (async () => {
+    await refreshSelectedModel();
+  })();
+};
 
 
   if (loading) return <div>Chargement en cours...</div>;
@@ -156,6 +103,7 @@ export default function ModelesDePlanning() {
 
   return (
     <div className="flex flex-col gap-5">
+      <TypeInterventionManager />
       <div className="flex flex-row gap-5">
         <div className="p-5 w-1/3 border rounded-lg flex flex-col gap-5">
           <div className="border-b pb-2 flex flex-row justify-between">
@@ -189,10 +137,10 @@ export default function ModelesDePlanning() {
                   Interventions du modèle: {selectedModel.name}
                 </h2>
 
-                <CreateModelInterventionDialog
-                  selectedModelId={selectedModel.id}
-                  onInterventionCreated={handleInterventionCreated}
-                />
+<CreateModelInterventionDialog
+  selectedModelId={selectedModel.id}
+  onInterventionCreated={handleInterventionCreated}
+/>
               </div>
 
               {selectedModel.modeleInterventions.length > 0 ? (

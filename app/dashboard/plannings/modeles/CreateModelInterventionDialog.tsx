@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiService, convertKeysToSnake } from "@/services/api-service";
 import TypeInterventionSelector from "@/components/types-intervention-selector";
 import { Plus } from "lucide-react";
+import type { InterventionModel } from "@/types/types";
 
 interface ModelIntervention {
     id: number;
@@ -17,7 +18,7 @@ interface ModelIntervention {
 
 interface CreateModelInterventionDialogProps {
     selectedModelId: number;
-    onInterventionCreated: (newIntervention: ModelIntervention) => void;
+    onInterventionCreated: () => void;
 }
 
 export default function CreateModelInterventionDialog({
@@ -42,19 +43,19 @@ export default function CreateModelInterventionDialog({
         };
 
         try {
-            const newIntervention: ModelIntervention = await apiService(
+            await apiService(
                 "modele-interventions",
                 "POST",
                 convertKeysToSnake(payload)
             );
-            onInterventionCreated(newIntervention);
-
-            toast({ title: "Succès", description: "Intervention ajoutée avec succès." });
-            setOpen(false);
-            setInterventionTime("");
-            setSelectedTypeIntervention(null);
-        } catch {
-            toast({ title: "Erreur", description: "Échec de l&apos;ajout de l&apos;intervention." });
+            onInterventionCreated();      // déclenche le refetch côté parent
+            setOpen(false);               // ferme la modal
+            setSelectedTypeIntervention(null); // reset champs
+            setInterventionTime("");           // reset champs
+            toast({ title: "Succès", description: "Intervention ajoutée au modèle." });
+        } catch (e) {
+            console.error(e);
+            toast({ title: "Erreur", description: "Création impossible." });
         }
     };
 

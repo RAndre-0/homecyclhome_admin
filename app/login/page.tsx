@@ -58,7 +58,7 @@ export default function Login() {
 
       setCookie(TOKEN_NAME, token, {
         path: '/',
-        maxAge: 60000,
+        maxAge: 3600,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
       });
