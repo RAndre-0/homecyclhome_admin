@@ -38,6 +38,7 @@ function isRawInterventionCreated(v: unknown): v is RawInterventionCreated {
 }
 
 dayjs.extend(utc);
+const fmtHHmm = (iso: string) => dayjs.utc(iso).format("HH:mm");
 
 export default function ModelesDePlanning() {
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
@@ -91,11 +92,11 @@ export default function ModelesDePlanning() {
     }
   }
 
-const handleInterventionCreated = () => {
-  void (async () => {
-    await refreshSelectedModel();
-  })();
-};
+  const handleInterventionCreated = () => {
+    void (async () => {
+      await refreshSelectedModel();
+    })();
+  };
 
 
   if (loading) return <div>Chargement en cours...</div>;
@@ -137,10 +138,10 @@ const handleInterventionCreated = () => {
                   Interventions du modèle: {selectedModel.name}
                 </h2>
 
-<CreateModelInterventionDialog
-  selectedModelId={selectedModel.id}
-  onInterventionCreated={handleInterventionCreated}
-/>
+                <CreateModelInterventionDialog
+                  selectedModelId={selectedModel.id}
+                  onInterventionCreated={handleInterventionCreated}
+                />
               </div>
 
               {selectedModel.modeleInterventions.length > 0 ? (
@@ -157,14 +158,12 @@ const handleInterventionCreated = () => {
                       <div className="flex">
                         <div className="flex items-center justify-start mr-4">
                           <Clock className="mr-2" />
-                          <p>{dayjs(intervention.interventionTime).format("HH:mm")}</p>
+                          <p>{fmtHHmm(intervention.interventionTime)}</p>
                         </div>
                         <div className="flex items-center justify-start">
                           <Timer className="mr-2" />
                           <p>
-                            {intervention.typeIntervention?.duree
-                              ? dayjs(intervention.typeIntervention.duree).format("HH:mm")
-                              : "—"}
+                            {intervention.typeIntervention?.duree ? fmtHHmm(String(intervention.typeIntervention.duree)) : "—"}
                           </p>
                         </div>
                       </div>
