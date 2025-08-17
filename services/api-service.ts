@@ -75,5 +75,12 @@ async function safeReadText(res: Response) {
 };
 
 export const isApiError = (e: unknown): e is { error: string } => {
-  return typeof e === "object" && e !== null && "error" in e;
+  if (e && typeof e === "object") {
+    if ("error" in e) return true;
+    if ("response" in e) {
+      const data = (e as any).response?.data;
+      if (data && typeof data.error === "string") return true;
+    }
+  }
+  return false;
 };

@@ -77,9 +77,14 @@ export default function Map() {
             setPolygons((prevPolygons) => [...prevPolygons, { ...polygon, id: response.id }]);
             toast({ title: "Succès", description: "Zone créée avec succès." });
         } catch (err: unknown) {
-            const errorMessage = isApiError(err)
-                ? err.error
-                : "Échec de la création de la zone.";
+            let errorMessage = "Échec de la création de la zone.";
+            if (isApiError(err)) {
+                if ("error" in err) {
+                    errorMessage = err.error;
+                } else if ("response" in err) {
+                    errorMessage = (err as any).response.data.error;
+                }
+            }
             toast({ title: "Erreur", description: errorMessage });
         }
     };
@@ -112,9 +117,14 @@ export default function Map() {
             );
             toast({ title: "Succès", description: "Zone modifiée avec succès." });
         } catch (err: unknown) {
-            const errorMessage = isApiError(err)
-                ? err.error
-                : "Échec de la modification de la zone.";
+            let errorMessage = "Échec de la modification de la zone.";
+            if (isApiError(err)) {
+                if ("error" in err) {
+                    errorMessage = err.error;
+                } else if ("response" in err) {
+                    errorMessage = (err as any).response.data.error;
+                }
+            }
             toast({ title: "Erreur", description: errorMessage });
         }
     };
