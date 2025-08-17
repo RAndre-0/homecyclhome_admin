@@ -1,7 +1,4 @@
-"use client";
 import { useState, useEffect } from "react";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import { apiService, convertKeysToCamel } from "@/services/api-service";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +8,7 @@ import CreateModelDialog from "./CreateModelDialog";
 import CreateModelInterventionDialog from "./CreateModelInterventionDialog";
 import type { Model, InterventionModel, TypeIntervention } from "@/types/types";
 import TypeInterventionManager from "./TypeInterventionManager";
+import { formatTimeUtc } from "@/services/date-formatting";
 
 type ModelSummary = { id: number; name: string };
 type RawTypeIntervention =
@@ -36,9 +34,6 @@ function isRawInterventionCreated(v: unknown): v is RawInterventionCreated {
     typeof (o as any).interventionTime === "string";
   return tiOk && timeOk;
 }
-
-dayjs.extend(utc);
-const fmtHHmm = (iso: string) => dayjs.utc(iso).format("HH:mm");
 
 export default function ModelesDePlanning() {
   const [selectedModel, setSelectedModel] = useState<Model | null>(null);
@@ -158,12 +153,12 @@ export default function ModelesDePlanning() {
                       <div className="flex">
                         <div className="flex items-center justify-start mr-4">
                           <Clock className="mr-2" />
-                          <p>{fmtHHmm(intervention.interventionTime)}</p>
+                          <p>{formatTimeUtc(intervention.interventionTime)}</p>
                         </div>
                         <div className="flex items-center justify-start">
                           <Timer className="mr-2" />
                           <p>
-                            {intervention.typeIntervention?.duree ? fmtHHmm(String(intervention.typeIntervention.duree)) : "—"}
+                            {formatTimeUtc(String(intervention.typeIntervention?.duree) ?? null)}
                           </p>
                         </div>
                       </div>
