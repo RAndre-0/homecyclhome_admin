@@ -7,7 +7,7 @@ import "leaflet-draw/dist/leaflet.draw.css";
 import type { Feature, Polygon as GeoJSONPolygon } from "geojson";
 import L from "leaflet";
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { apiService } from "@/services/api-service";
+import { apiService, isApiError } from "@/services/api-service";
 import {
     Card,
     CardContent,
@@ -76,9 +76,11 @@ export default function Map() {
             const response = await apiService("zones", "POST", polygon);
             setPolygons((prevPolygons) => [...prevPolygons, { ...polygon, id: response.id }]);
             toast({ title: "Succès", description: "Zone créée avec succès." });
-        } catch (error) {
-            console.error("Erreur lors de la sauvegarde de la zone :", error);
-            toast({ title: "Erreur", description: "Échec de la création de la zone." });
+        } catch (err: unknown) {
+            const errorMessage = isApiError(err)
+                ? err.error
+                : "Échec de la création de la zone.";
+            toast({ title: "Erreur", description: errorMessage });
         }
     };
 
@@ -88,11 +90,11 @@ export default function Map() {
         const ring = feature.geometry.coordinates[0] as [number, number][];
 
         const payload: Polygon = {
-        id: 0,
-        name: `Zone${Math.floor(Math.random() * 1_000_000_000)}`,
-        color: "#FF5733",
-        coordinates: ring.map(([lng, lat]) => ({ longitude: lng, latitude: lat })),
-        technicien: null,
+            id: 0,
+            name: `Zone${Math.floor(Math.random() * 1_000_000_000)}`,
+            color: "#FF5733",
+            coordinates: ring.map(([lng, lat]) => ({ longitude: lng, latitude: lat })),
+            technicien: null,
         };
 
         savePolygon(payload);
@@ -109,40 +111,42 @@ export default function Map() {
                 prevPolygons.map((p) => (p.id === polygon.id ? polygon : p))
             );
             toast({ title: "Succès", description: "Zone modifiée avec succès." });
-        } catch (error) {
-            console.error(`Erreur lors de la mise à jour de la zone ${polygon.id} :`, error);
-            toast({ title: "Erreur", description: "Échec de la modification de la zone." });
+        } catch (err: unknown) {
+            const errorMessage = isApiError(err)
+                ? err.error
+                : "Échec de la modification de la zone.";
+            toast({ title: "Erreur", description: errorMessage });
         }
     };
 
     const _onEditPath = (e: L.DrawEvents.Edited) => {
         e.layers.eachLayer((layer: L.Layer) => {
-        // On travaille uniquement sur les polygones qu’on a créés
-        if (!(layer instanceof L.Polygon)) return;
-        const poly = layer as ExtendedPolygonLayer;
-        const layerId = poly.options.id;
-        if (!layerId) return;
+            // On travaille uniquement sur les polygones qu’on a créés
+            if (!(layer instanceof L.Polygon)) return;
+            const poly = layer as ExtendedPolygonLayer;
+            const layerId = poly.options.id;
+            if (!layerId) return;
 
-        if (editingIds.current.has(layerId)) return;
-        editingIds.current.add(layerId);
+            if (editingIds.current.has(layerId)) return;
+            editingIds.current.add(layerId);
 
-        const feature = poly.toGeoJSON() as Feature<GeoJSONPolygon>;
-        const ring = feature.geometry.coordinates[0] as [number, number][];
-        const updatedCoordinates = ring.map(([lng, lat]) => ({
-            longitude: lng,
-            latitude: lat,
-        }));
+            const feature = poly.toGeoJSON() as Feature<GeoJSONPolygon>;
+            const ring = feature.geometry.coordinates[0] as [number, number][];
+            const updatedCoordinates = ring.map(([lng, lat]) => ({
+                longitude: lng,
+                latitude: lat,
+            }));
 
-        const updatedPolygon = polygonsRef.current.find((p) => p.id === layerId);
-        if (!updatedPolygon) {
-            editingIds.current.delete(layerId);
-            return;
-        }
+            const updatedPolygon = polygonsRef.current.find((p) => p.id === layerId);
+            if (!updatedPolygon) {
+                editingIds.current.delete(layerId);
+                return;
+            }
 
-        const newPolygonData = { ...updatedPolygon, coordinates: updatedCoordinates };
-        updatePolygon(newPolygonData).finally(() => {
-            editingIds.current.delete(layerId);
-        });
+            const newPolygonData = { ...updatedPolygon, coordinates: updatedCoordinates };
+            updatePolygon(newPolygonData).finally(() => {
+                editingIds.current.delete(layerId);
+            });
         });
     };
 
@@ -167,10 +171,10 @@ export default function Map() {
     };
     const _onDeleted = (e: L.DrawEvents.Deleted) => {
         e.layers.eachLayer((layer: L.Layer) => {
-        if (!(layer instanceof L.Polygon)) return;
-        const poly = layer as ExtendedPolygonLayer;
-        const layerId = poly.options.id;
-        if (layerId) deletePolygon(layerId);
+            if (!(layer instanceof L.Polygon)) return;
+            const poly = layer as ExtendedPolygonLayer;
+            const layerId = poly.options.id;
+            if (layerId) deletePolygon(layerId);
         });
     };
 
