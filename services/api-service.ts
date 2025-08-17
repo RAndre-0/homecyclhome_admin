@@ -73,14 +73,3 @@ export const convertKeysToSnake = <T = unknown>(input: unknown): T => {
 async function safeReadText(res: Response) {
   try { return await res.text(); } catch { return '<no body>'; }
 };
-
-export const isApiError = (e: unknown): e is { error: string } => {
-  if (e && typeof e === "object") {
-    if ("error" in e) return true;
-    if ("response" in e) {
-      const data = (e as any).response?.data;
-      if (data && typeof data.error === "string") return true;
-    }
-  }
-  return false;
-};

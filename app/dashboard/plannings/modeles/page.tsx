@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from "react";
 import { apiService, convertKeysToCamel } from "@/services/api-service";
 import { Button } from "@/components/ui/button";
