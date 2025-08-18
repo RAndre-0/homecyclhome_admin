@@ -266,7 +266,7 @@ export default function Map() {
         style={styles.map}
         center={[45.757704, 4.834099]}
         zoom={13}
-        scrollWheelZoom={false}
+        scrollWheelZoom={true}
         className="rounded-xl"
       >
         <TileLayer
