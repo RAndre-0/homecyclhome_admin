@@ -1,0 +1,40 @@
+name: Deploy ADMIN (TEST)
+
+on:
+  push:
+    branches: [ "main" ]
+
+concurrency:
+  group: deploy-admin-test
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build on VPS & restart app (TEST)
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: SSH to VPS & deploy TEST
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd /var/www/homecyclhome_test/homecyclhome_admin
+
+            # sécurité git
+            git config --global --add safe.directory /var/www/homecyclhome_test/homecyclhome_admin
+
+            # sync code
+            git fetch origin main
+            git reset --hard origin/main
+
+            # build & run (projet Compose figé pour TEST)
+            DOCKER_BUILDKIT=1 docker compose -p homecyclhome_admin_test build --pull
+            docker compose -p homecyclhome_admin_test up -d --no-deps admin
+
+            docker image prune -f || true
+            docker compose -p homecyclhome_admin_test ps
+            docker compose -p homecyclhome_admin_test logs --since=1m admin || true

@@ -8,15 +8,15 @@ services:
         NEXT_PUBLIC_TOKEN_NAME: ${NEXT_PUBLIC_TOKEN_NAME}
         APP_VERSION: ${APP_VERSION:-1.0.0}
     container_name: ${ADMIN_CONTAINER_NAME:-homecyclhome_admin}
-    # Expose uniquement en local pour que seul Caddy y accède
-    ports:
-      - "127.0.0.1:${ADMIN_PORT:-3001}:3000"
-    # Charge les variables runtime depuis .env
     env_file:
       - .env
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       NEXT_PUBLIC_API_ROUTE: ${NEXT_PUBLIC_API_ROUTE}
+      NEXT_PUBLIC_UPLOAD_DIR: ${NEXT_PUBLIC_UPLOAD_DIR}
       NEXT_PUBLIC_TOKEN_NAME: ${NEXT_PUBLIC_TOKEN_NAME}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
       NEXT_TELEMETRY_DISABLED: ${NEXT_TELEMETRY_DISABLED:-1}
+    ports:
+      - "127.0.0.1:${ADMIN_PORT:-3001}:3000"
     restart: unless-stopped
