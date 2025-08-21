@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HomeCyclHome — App ADMIN
 
-## Getting Started
+### Interface d’administration (Next.js) pour la gestion des zones, techniciens, demandes, etc.
 
-First, run the development server:
+## 🚀 Accès
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+PROD : https://admin.homecyclhome.site
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+TEST : https://admin-test.homecyclhome.site
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+L’app TEST pointe vers l’API TEST (https://api-test.homecyclhome.site/api/).
+L’app PROD pointe vers l’API PROD (https://api.homecyclhome.site/api/).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔐 Se connecter (création d’un admin en TEST)
 
-## Learn More
+Créer un compte admin directement dans le conteneur API TEST :
 
-To learn more about Next.js, take a look at the following resources:
+php bin/console create-admin "admin.test@homecyclhome.site" "MotDePasseSolide" "Prenom" "Nom"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🔁 Déploiement (workflows)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+TEST : déploiement automatique à chaque push sur main.
 
-## Deploy on Vercel
+PROD : déploiement manuel depuis l’onglet Actions de GitHub.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Les workflows forcent -p homecyclhome_admin / -p homecyclhome_admin_test pour séparer les stacks.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🛠️ Dépannage éclair
+
+502 sur le domaine test
+
+sudo systemctl reload caddy
+sudo ss -ltnp | egrep ':3101' || true
+docker compose -p homecyclhome_admin_test logs --since=2m app
+
+
+Permissions Git dans le dossier test
+
+cd /var/www/homecyclhome_test/homecyclhome_admin
+sudo chown -R randre:randre .
+git fetch origin main && git reset --hard origin/main
+
+## 📦 Dev notes (résumé)
+
+Next.js en output standalone (Docker-ready).
+
+Images distantes autorisées pour api.homecyclhome.site et api-test.homecyclhome.site.
+
+Télémetry Next désactivée en prod/test (NEXT_TELEMETRY_DISABLED=1).
