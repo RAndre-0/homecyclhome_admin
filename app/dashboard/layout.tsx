@@ -35,7 +35,7 @@ export default function Layout({ children }: LayoutProps) {
               <SidebarLink href="/dashboard/carte" label="Carte" icon={Map} />
               <SidebarLink href="/dashboard/plannings" label="Plannings" icon={Calendar} />
               <SidebarLink href="/dashboard/plannings/modeles" label="Modèles de planning" icon={Layers2} />
-              <SidebarLink href="/dashboard/produits" label="Produits" icon={Package} />
+              <SidebarLink href="/dashboard/produits" label="Produits" icon={Package} disabled />
               <SidebarLink href="/dashboard/utilisateurs" label="Utilisateurs" icon={Users} />
             </nav>
           </div>
@@ -63,12 +63,12 @@ export default function Layout({ children }: LayoutProps) {
                   />
                 </Link>
               </div>
-              <nav className="grid gap-2 text-lg font-medium">
+              <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
                 <SidebarLink href="/dashboard" label="Accueil" icon={Home} />
                 <SidebarLink href="/dashboard/carte" label="Carte" icon={Map} />
                 <SidebarLink href="/dashboard/plannings" label="Plannings" icon={Calendar} />
                 <SidebarLink href="/dashboard/plannings/modeles" label="Modèles de planning" icon={Layers2} />
-                <SidebarLink href="/dashboard/produits" label="Produits" icon={Package} />
+                <SidebarLink href="/dashboard/produits" label="Produits" icon={Package} disabled />
                 <SidebarLink href="/dashboard/utilisateurs" label="Utilisateurs" icon={Users} />
               </nav>
             </SheetContent>
@@ -95,8 +95,6 @@ export default function Layout({ children }: LayoutProps) {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Paramètres</DropdownMenuItem>
-              <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <span>Theme</span>
