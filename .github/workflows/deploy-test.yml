@@ -1,18 +1,17 @@
-name: Deploy ADMIN (TEST)
+name: Deploy ADMIN (TEST - auto)
 
 on:
   push:
     branches: [ "main" ]
-
-concurrency:
-  group: deploy-admin-test
-  cancel-in-progress: false
 
 jobs:
   deploy:
     name: Build on VPS & restart app (TEST)
     runs-on: ubuntu-latest
     environment: production
+    concurrency:
+      group: deploy-admin-test
+      cancel-in-progress: false
     steps:
       - name: SSH to VPS & deploy TEST
         uses: appleboy/ssh-action@v1.2.0

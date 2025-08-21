@@ -1,17 +1,16 @@
-name: Deploy ADMIN (PROD)
+name: Deploy ADMIN (PROD - manual)
 
 on:
   workflow_dispatch:
 
-concurrency:
-  group: deploy-admin-prod
-  cancel-in-progress: false
-
 jobs:
   deploy:
     name: Build on VPS & restart app
-    environment: production
     runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-admin-prod
+      cancel-in-progress: false
     steps:
       - name: SSH to VPS & deploy PROD
         uses: appleboy/ssh-action@v1.2.0
